@@ -1,0 +1,57 @@
+import org.apache.commons.io.IOUtils;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+
+
+public class Main {
+
+
+    public String readRawDataToString() throws Exception{
+        ClassLoader classLoader = getClass().getClassLoader();
+        String result = IOUtils.toString(classLoader.getResourceAsStream("RawData.txt"));
+        return result;
+    }
+
+    public static void regexPattern(String rawDataResults){
+
+        String[] strArray = rawDataResults.split("##");
+
+        Map<String, Map<String, Integer>> groceryList = new HashMap<>();
+
+        Pattern pattern = Pattern.compile("naMe: (.+?);price:(.+?);",Pattern.CASE_INSENSITIVE);
+        //Matcher matcher = pattern.matcher(rawDataResults);
+
+        StringBuilder strResult = new StringBuilder();
+
+        for(String string : strArray){
+            Matcher matcher = pattern.matcher(string);
+                while(matcher.find()) {
+                    String name = matcher.group(1).trim().toLowerCase();
+                    String price = matcher.group(2).trim();
+                    if (!price.isEmpty()) {
+                        groceryList.putIfAbsent(name, new HashMap<>());
+                        Map<String, Integer> priceMap = groceryList.get(name);
+                        priceMap.putIfAbsent(price, priceMap.getOrDefault(price, 0) + 1);
+                    }
+                }
+
+        }
+        for (Map.Entry<String, Map<String, Integer>> entry: groceryList.entrySet()){
+            System.out.println("Name: " + entry.getKey() + "\t\t seen: " + entry.getValue().values().stream().mapToInt(Integer::intValue).sum() + " times");
+
+            System.out.println("=============\t\t=============");
+
+            for (Map.Entry<String, Integer> price: entry.getValue().entrySet()){
+                System.out.println("Price: \t " + price.getKey() + "\t\t seen: " + price.getValue() + " time" + (price.getValue() > 1 ? "s" : ""));
+                System.out.println("-------------\t\t-------------");
+            }
+        }
+
+    }
